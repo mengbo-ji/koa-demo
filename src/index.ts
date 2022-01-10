@@ -1,5 +1,6 @@
 import * as Koa from 'koa';
 import * as http from 'http'
+import * as crypto from 'crypto'
 
 const app = new Koa()
 
@@ -15,8 +16,11 @@ app.use(async (ctx, next) => {
   // ctx.throw(500, '服务器未知错误')
   // ctx.throw(401, 'access_denied', { user: ctx.url });
   await next();
+  ctx.response.etag = crypto.createHash('md5').update(ctx.body).digest('hex')
   const rt = ctx.response.get('X-Response-Time');
   console.log(`${ctx.method} ${ctx.url} - ${rt}`);
+  const etag = ctx.response.get('ETag');
+  console.log('etag', etag)
 });
 
 // x-response-time
@@ -30,6 +34,21 @@ app.use(async (ctx, next) => {
 
 // response
 app.use(async ctx => {
+  // 新鲜度检查需要状态20x或304
+  ctx.status = 200;
+  ctx.set({
+    'Cache-Control': 'no-store,no-cache'
+  })
+  ctx.response.lastModified = new Date()
+  // 缓存是好的
+  if (ctx.fresh) {
+    ctx.status = 304;
+    return;
+  }
+  console.log('fresh', ctx.fresh)
+  // 缓存是陈旧的
+  // 获取新数据
+  console.log('is', ctx.is(ctx.type))
   ctx.body = 'Hello World';
 });
 
