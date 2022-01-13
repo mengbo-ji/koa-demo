@@ -9,6 +9,7 @@ export default () => {
       ctx.body = {
         msg: err.message
       }
+      ctx.app.emit('error', err, ctx)
     }
   }
 }

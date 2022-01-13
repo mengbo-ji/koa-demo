@@ -4,7 +4,7 @@
   "description": "Koa demo",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --config nodemon.json src/main.ts",
+    "dev": "nodemon --config nodemon.json Mykoa/index.ts",
     "dev:debug": "nodemon --config nodemon.json --inspect-brk src/main.ts"
   },
   "repository": {
