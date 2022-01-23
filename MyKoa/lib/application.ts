@@ -37,18 +37,7 @@ class Koa {
       const context = this.createContext(req, res)
       fnMiddleware(context)
         .then(() => {
-          let body = context.body;
-
-          if (body === undefined) {
-            res.end('Not Found')
-          }
-          if (body instanceof Stream) {
-            res.write(body)
-          }
-          if (typeof body === 'object') {
-            return res.end(JSON.stringify(body));
-          }
-          res.end(body);
+          respond(context)
         })
         .catch(() => {
           res.end('error')
@@ -88,6 +77,25 @@ class Koa {
     context.originalUrl = request.originalUrl = req.url
     context.state = {} // 初始化 state 数据对象，用于给模板视图提供数据
     return context
+  }
+}
+
+function respond(ctx: Context) {
+  const body = ctx.body
+  const res = ctx.res
+
+  if (body === null) {
+    res.statusCode = 204
+    res.end()
+  }
+
+  if (typeof body === 'string') return res.end(body)
+  if (Buffer.isBuffer(body)) return res.end(body)
+  if (body instanceof Stream) return body.pipe(res)
+  if (typeof body === 'number') return res.end(body + '')
+  if (typeof body === 'object') {
+    const jsonStr = JSON.stringify(body)
+    res.end(jsonStr)
   }
 }
 
